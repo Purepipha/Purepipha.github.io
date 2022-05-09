@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>CS144计算机网络Lab0 |  Pursue Epipha&#39;s blog</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    <link rel="alternate" href="/atom.xml" title="Pursue Epipha's blog" type="application/atom+xml">
+</head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-CS144计算机网络Lab0"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  CS144计算机网络Lab0
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab0/" class="article-date">
+  <time datetime="2022-05-08T09:12:16.000Z" itemprop="datePublished">2022-05-08</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Way-of-Seeking/">Way of Seeking</a> / <a class="article-category-link" href="/categories/Way-of-Seeking/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3.4k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">15 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h1><p>这里记录了笔者学习计算机网络Lab1的一些笔记，Lab1实验实现的是一个流重组器，其功能是将接收到的数据段组成一个数据流。</p>
+<ul>
+<li>Lab0实验指导手册：<a target="_blank" rel="noopener" href="https://cs144.github.io/assignments/lab0.pdf">https://cs144.github.io/assignments/lab0.pdf</a></li>
+<li>个人实验项目地址：<a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge">Github</a></li>
+</ul>
+<p>Tips：做实验前，最好复习一下计算机网络的相关知识，可以更好的帮助我们了解实验的整体设计。<span id="more"></span></p>
+<h1 id="二、实验环境搭建"><a href="#二、实验环境搭建" class="headerlink" title="二、实验环境搭建"></a>二、实验环境搭建</h1><ul>
+<li>搭建GUN&#x2F;Linux环境<br>这里就不详细展开了，需要的小伙伴可以看这两篇博客：<ul>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Fight-go/p/15827634.html">Linux系统安装</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Fight-go/p/15836109.html">GUN环境安装</a></li>
+</ul>
+</li>
+</ul>
+<h1 id="三、手动访问网页"><a href="#三、手动访问网页" class="headerlink" title="三、手动访问网页"></a>三、手动访问网页</h1><ol>
+<li>使用浏览器，访问网页 <a target="_blank" rel="noopener" href="http://cs144.keithw.org/hello">http://cs144.keithw.org/hello</a></li>
+<li>使用telnet访问<ul>
+<li>输入如下指令 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">telnet cs144.keithw.org http</span><br><span class="line">GET /hello HTTP/1.1</span><br><span class="line">Host: cs144.keithw.org</span><br><span class="line">Conncetion: close</span><br></pre></td></tr></table></figure></li>
+<li>观察结果如下：<br> <img src="https://s2.loli.net/2022/04/24/C4G2dgHYVhMkF9u.png"><br> <font color=red><strong>Tips:实验成功的关键是输入的速度足够快，可以复制粘贴输入，速度慢了会返回404错误。</strong></font>这里telnet首先使用http端口连接服务器，然后提交一个GET请求，获得服务器 &#x2F;hello下的内容，然后关闭连接。这实际上与我们用浏览器访问该网址是一样的，只不过这里不是图形化页面，同时会返回所有的信息。</li>
+</ul>
+</li>
+<li>任务：访问网址：<a target="_blank" rel="noopener" href="http://cs144.keithw.org/lab0/sunetid">http://cs144.keithw.org/lab0/sunetid</a> ，其中sunetid可以自行设置，可以获得一个密码在 X-Your-Code-Is。<ul>
+<li>命令 <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">telnet cs144.keithw.org http</span><br><span class="line">GET /lab0/peng HTTP/1.1</span><br><span class="line">Host: cs144.keithw.org</span><br><span class="line">Conncetion: close</span><br></pre></td></tr></table></figure>
+ Tips: 运行结果就不展示了，这里注意还是输入的速度要快，和我一样打字速度慢的可以先写好，复制粘贴。<h1 id="四、给自己发送邮件"><a href="#四、给自己发送邮件" class="headerlink" title="四、给自己发送邮件"></a>四、给自己发送邮件</h1>这个实验，使用CS144提供的实验不能够完成，因为使用到Stanford的邮箱服务，因此这里使用了QQ邮箱来完成该实验。</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li><p>在使用QQ邮箱进行实验之前，首先需要获得自己QQ邮箱的16位校验码，使用的是校验码登录。设置步骤如下：</p>
+<ul>
+<li>网页登录qq邮箱</li>
+<li>点击设置，账户设置</li>
+<li>在账户安全下面有 POP3&#x2F;IMAP&#x2F;SMTP&#x2F;Exchange&#x2F;CardDAV&#x2F;CalDAV服务选项，如下图所示：<br>  <img src="https://s2.loli.net/2022/04/24/feSh5kgRcVaOpln.png"></li>
+<li>先点击开启SMTP服务，开启后点击生成授权码，生成一个十六位的校验码，记录下来。</li>
+</ul>
+</li>
+<li><p>得到16位校验码之后，我们还不能使用，因为登录时使用的是校验码和qq号的64位base加密码。</p>
+<ul>
+<li>打开64base加密网址：<a target="_blank" rel="noopener" href="https://base64.us/">https://base64.us/</a></li>
+<li>输入你的qq号点击加密，把结果记录下来</li>
+<li>输入你的16位校验码点击加密，把结果记录下来<br>  笔者进行了如下记录：<br>  <img src="https://s2.loli.net/2022/04/24/8AlughC5FmGNZwI.png"></li>
+</ul>
+</li>
+<li><p>接下来就可以进行实验啦</p>
+<ul>
+<li>使用telnet连接qq邮箱的服务器</li>
+<li>给服务器发送一个helo请求，helo可以大写，也可以小写</li>
+<li>收到回复之后发送auth login，请求登录</li>
+<li>接下来发送qq号的64位base码</li>
+<li>发送邮箱的16位校验码的base码</li>
+<li>登录成功之后就可以发送邮件啦</li>
+<li>发送 MAIL FROM: &lt;QQ号@qq.com&gt; 告诉邮箱服务器邮件发送方，就你目前登录的qq邮箱</li>
+<li>发送 RCPT TO: &lt;手机号@163.com&gt; 告诉邮箱服务器邮件接收方，就你想要发送的目标邮箱，这里笔者使用了自己的163邮箱</li>
+<li>发送 DATA +回车 告诉服务器要输入邮件信息了</li>
+<li>发送信息的模板如下：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">From: &lt;QQ号@qq.com&gt; #发送方</span><br><span class="line">To: &lt;手机号@163.com&gt; #接收方</span><br><span class="line">subject: test # 邮件主题，好多样例里只发送主题， 注意发送邮件内容需要在主题后有一空行</span><br><span class="line"># 空行</span><br><span class="line">  I am the ... # 邮件内容，邮件内容后也需要一空行</span><br><span class="line"># 空行</span><br><span class="line">. # ‘.’ 加回车提示邮件内容发送完成</span><br></pre></td></tr></table></figure></li>
+<li>发送完邮件之前，可以输入QUIT加回车关闭telnet连接</li>
+</ul>
+</li>
+<li><p>实验完整的命令如下：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">telnet smtp.qq.com smtp</span><br><span class="line">HELO smtp.qq.com</span><br><span class="line">auth login</span><br><span class="line">QQ号的64位base编码：自己的qq号base64编码</span><br><span class="line">16位校验码的base编码：16位校验码的base64编码</span><br><span class="line">MAIL FROM: &lt;qq号@qq.com&gt;</span><br><span class="line">RCPT TO: &lt;手机号@163.com&gt;</span><br><span class="line">DATA</span><br><span class="line">From: &lt;qq号@qq.com&gt;</span><br><span class="line">To: &lt;手机号@163.com&gt;</span><br><span class="line">subject: test</span><br><span class="line"></span><br><span class="line">  I am the ...</span><br><span class="line"></span><br><span class="line">.</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li><p>实验结果<br><img src="https://s2.loli.net/2022/04/24/NWGD1dwuxvFem3H.png"><br>其中箭头指向的是来自服务器的回复信息。<br><img src="https://s2.loli.net/2022/04/24/r3qGWdFtAuLgVvx.png"></p>
+<h1 id="五、监听和连接"><a href="#五、监听和连接" class="headerlink" title="五、监听和连接"></a>五、监听和连接</h1><p>这个实验是实现运行在同一台电脑上的两个终端之间进行通信。</p>
+</li>
+<li><p>实验步骤：</p>
+<ul>
+<li>打开一个终端，输入命令 <code>netcat -v -l -p 9090</code>，开启该终端的监听服务</li>
+<li>打开另一个终端， 使用 telnet 进行连接， 输入指令 <code>telnet localhost 9090</code></li>
+<li>如果运行顺利的话，两个终端都会收到消息，客户端(telnet)提示连接成功，服务端(netcat)提示，收到客户端(telnet)的连接</li>
+<li>你可以在服务端或者客户端输入信息，按下回车键后会同步显示在另一个终端上</li>
+<li>最后可以在服务端(netcat)输入<code>ctrl-C</code>关闭服务</li>
+</ul>
+</li>
+<li><p>运行结果<br><img src="https://s2.loli.net/2022/04/24/Y6scbDU12mtFMZn.png"></p>
+<h1 id="六、编写一个使用系统流套接字的网络程序"><a href="#六、编写一个使用系统流套接字的网络程序" class="headerlink" title="六、编写一个使用系统流套接字的网络程序"></a>六、编写一个使用系统流套接字的网络程序</h1><p>这里使用linux系统的套接字实现一个小程序webget，即我们之前使用telnet进行访问网页的程序。为了编写这个程序，我们首先需要使用git将github代码仓库里的代码克隆到本地，这里笔者使用的Vscode的Git管理，构建VscodeGit管理的教程，可以参考这篇博客：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Fight-go/p/15851321.html">https://www.cnblogs.com/Fight-go/p/15851321.html</a></p>
+</li>
+</ul>
+<ol>
+<li>克隆项目<br>为了克隆这个实验项目，在终端输入如下指令:</li>
+</ol>
+<ul>
+<li><code>git clone https://github.com/cs144/sponge</code> 就可以将源码拷贝到本地了。</li>
+<li><code>cd sponge</code> 进入实验0目录</li>
+<li><code>mkdir build</code>创建build目录</li>
+<li><code>cd build</code> 进入编译目录</li>
+<li><code>cmake ..</code> 设置编译系统</li>
+<li><code>make</code> 编译源码，(可以使用make -j4 使用四个处理器)</li>
+</ul>
+<ol start="2">
+<li>编码风格建议<br>在课程建议使用C++11的代码风格，这里笔者可能只使用了一部分，做后面的实验中应该也会优化之前的代码。<br>这里是课程给出的编码建议：</li>
+</ol>
+<ul>
+<li>Use the language documentation at <a target="_blank" rel="noopener" href="https://en.cppreference.com/">https://en.cppreference.com</a> as a resource.</li>
+<li>Never use malloc() or free().</li>
+<li>Never use new or delete.</li>
+<li>Essentially never use raw pointers (*), and use “smart” pointers (unique ptr or shared ptr) only when necessary. (You will not need to use these in CS144.)</li>
+<li>Avoid templates, threads, locks, and virtual functions. (You will not need to use these in CS144.)</li>
+<li>Avoid C-style strings (char *str) or string functions (strlen(), strcpy()). These are pretty error-prone. Use a std::string instead.</li>
+<li>Never use C-style casts (e.g., (FILE *)x). Use a C++ static cast if you have to (you generally will not need this in CS144).</li>
+<li>Prefer passing function arguments by const reference (e.g.: const Address &amp; address).</li>
+<li>Make every variable const unless it needs to be mutated.</li>
+<li>Make every method const unless it needs to mutate the object.</li>
+<li>Avoid global variables, and give every variable the smallest scope possible.</li>
+<li>Before handing in an assignment, please run make format to normalize the coding style.</li>
+</ul>
+<ol start="3">
+<li>读Sponge文件<br>关键需要阅读 libsponge&#x2F;util目录下的文件：<strong>file descriptor.hh, socket.hh, and address.hh.</strong></li>
+<li>编写webget程序</li>
+</ol>
+<ul>
+<li>使用IDE或者文本编辑器打开 apps&#x2F;webget.cc 文件</li>
+<li>在get_URL()函数中，编写代码，可以看到开始提示”&#x2F;&#x2F; Your code here”</li>
+</ul>
+<p>套接字本身是一个文件描述符，程序通过它对“某个文件(字节流抽象)”执行操作，这里通过套接字的EOF标志符判断是否到达文件流结尾，如果到达，则停止读取，否则，一直进行读取。<br>代码如下：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">get_URL</span><span class="params">(<span class="type">const</span> string &amp;host, <span class="type">const</span> string &amp;path)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// Your code here.</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// You will need to connect to the &quot;http&quot; service on</span></span><br><span class="line">    <span class="comment">// the computer whose name is in the &quot;host&quot; string,</span></span><br><span class="line">    <span class="comment">// then request the URL path given in the &quot;path&quot; string.</span></span><br><span class="line"></span><br><span class="line">    TCPSocket local_socket;</span><br><span class="line">    Address sever_addr = <span class="built_in">Address</span>(host, <span class="string">&quot;http&quot;</span>);   <span class="comment">// get the address of sever</span></span><br><span class="line">    local_socket.<span class="built_in">connect</span>(sever_addr);           <span class="comment">// connect to the sever</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Then you&#x27;ll need to print out everything the server sends back,</span></span><br><span class="line">    <span class="comment">// (not just one call to read() -- everything) until you reach</span></span><br><span class="line">    <span class="comment">// the &quot;eof&quot; (end of file).</span></span><br><span class="line">    <span class="comment">// send GET request</span></span><br><span class="line">    <span class="comment">// string get_request = &quot;GET/ HTTP/1.1\r\nHost: &quot; + host + &quot;\r\n&quot; +</span></span><br><span class="line">    <span class="comment">//     &quot;Accept: &quot; + path + &quot;\r\n&quot; + &quot;Connection: close\r\n\r\n&quot;;</span></span><br><span class="line">    string get_request = <span class="string">&quot;GET &quot;</span> + path + <span class="string">&quot; HTTP/1.1\r\n&quot;</span></span><br><span class="line">        + <span class="string">&quot;Host: &quot;</span> + host + <span class="string">&quot;\r\n&quot;</span></span><br><span class="line">        + <span class="string">&quot;Connection: close\r\n\r\n&quot;</span>;</span><br><span class="line">    local_socket.<span class="built_in">write</span>(get_request);</span><br><span class="line">    <span class="comment">// read the message from sever</span></span><br><span class="line">    <span class="keyword">while</span> (!local_socket.<span class="built_in">eof</span>())&#123;</span><br><span class="line">        cout &lt;&lt; local_socket.<span class="built_in">read</span>();</span><br><span class="line">    &#125;</span><br><span class="line">    local_socket.<span class="built_in">close</span>();</span><br><span class="line">    <span class="keyword">if</span> (local_socket.<span class="built_in">closed</span>())&#123;</span><br><span class="line">        <span class="comment">// cout &lt;&lt; &quot;Connection closed by foreign host.&quot; &lt;&lt; endl;</span></span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    cerr &lt;&lt; <span class="string">&quot;Function called: get_URL(&quot;</span> &lt;&lt; host &lt;&lt; <span class="string">&quot;, &quot;</span> &lt;&lt; path &lt;&lt; <span class="string">&quot;).\n&quot;</span>;</span><br><span class="line">    cerr &lt;&lt; <span class="string">&quot;Warning: get_URL() has not been implemented yet.\n&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>编写完程序，可以运行make，如果看到错误信息，需要首先修复该信息</li>
+<li>测试程序，通过运行<code>./apps/webget cs144.keithw.org /hello</code>，可以看到通过网页访问的结果</li>
+<li>测试正确后，运行<code>make check_webget</code>来执行自动化测试，测试通过。<h1 id="七、Lab0实现-——-一个记忆可靠的字节流"><a href="#七、Lab0实现-——-一个记忆可靠的字节流" class="headerlink" title="七、Lab0实现 —— 一个记忆可靠的字节流"></a>七、Lab0实现 —— 一个记忆可靠的字节流</h1>因特网本身不对传输可靠性做保证，而是由终端即服务器和客户端的操作系统来保证可靠性。我们现在要实现的是位于TCP连接两端的套接字中的字节流数据结构。TCPSocket中有两个ByteStream，inbound用于接收数据，outbound用于发送数据。 大体上，ByteStream具有一定的容量，最大允许存储该容量大小的数据；在读取端读出一部分数据后，它会释放掉已经被读出的内容，以腾出空间继续让写端写入数据。<br>字节流以ByteStream类实现，在文件byte_stream.hh中定义，实现方法在byte_stream.cc中。这里笔者创建了一个字符串类型的buffer变量，来作为缓冲区的存储空间，还添加了一系列成员来实现读和写的工作，这里实现读和写的功能都是使用字符串类型的方法实现的。<br>代码如下:<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">ifndef</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//! \brief An in-order byte stream.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//! Bytes are written on the &quot;input&quot; side and read from the &quot;output&quot;</span></span><br><span class="line"><span class="comment">//! side.  The byte stream is finite: the writer can end the input,</span></span><br><span class="line"><span class="comment">//! and then no more bytes can be written.</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">ByteStream</span> &#123;</span><br><span class="line">  <span class="keyword">private</span>:</span><br><span class="line">    <span class="comment">// Your code here -- add private members as necessary.</span></span><br><span class="line">    <span class="type">size_t</span> _capacity;       <span class="comment">// capacity of buffer</span></span><br><span class="line">    <span class="type">size_t</span> _bytes_written;    <span class="comment">// total len of written bytes</span></span><br><span class="line">    <span class="type">size_t</span> _bytes_read;       <span class="comment">// total len of read bytes</span></span><br><span class="line">    <span class="type">size_t</span> _buffer_size;    <span class="comment">// the size of buffer</span></span><br><span class="line">    <span class="type">size_t</span> _remaining_capacity;        <span class="comment">// now the len of buffer</span></span><br><span class="line">    std::string _buffer;    <span class="comment">// buffer of bytestream</span></span><br><span class="line">    <span class="type">bool</span> _input_ended;       <span class="comment">// flag indiacating that input is end</span></span><br><span class="line">    <span class="type">bool</span> _eof;              <span class="comment">// end of file flag</span></span><br><span class="line">    <span class="type">bool</span> _buffer_empty;     <span class="comment">// flag indicating that the buffer is empty</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">// Hint: This doesn&#x27;t need to be a sophisticated data structure at</span></span><br><span class="line">    <span class="comment">// all, but if any of your tests are taking longer than a second,</span></span><br><span class="line">    <span class="comment">// that&#x27;s a sign that you probably want to keep exploring</span></span><br><span class="line">    <span class="comment">// different approaches.</span></span><br><span class="line"></span><br><span class="line">    <span class="type">bool</span> _error&#123;&#125;;  <span class="comment">//!&lt; Flag indicating that the stream suffered an error.</span></span><br><span class="line"></span><br><span class="line">  <span class="keyword">public</span>:</span><br><span class="line">    <span class="comment">//! Construct a stream with room for `capacity` bytes.</span></span><br><span class="line">    <span class="built_in">ByteStream</span>(<span class="type">const</span> <span class="type">size_t</span> capacity);</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \name &quot;Input&quot; interface for the writer</span></span><br><span class="line">    <span class="comment">//!@&#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Write a string of bytes into the stream. Write as many</span></span><br><span class="line">    <span class="comment">//! as will fit, and return how many were written.</span></span><br><span class="line">    <span class="comment">//! \returns the number of bytes accepted into the stream</span></span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">write</span><span class="params">(<span class="type">const</span> std::string &amp;data)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns the number of additional bytes that the stream has space for</span></span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">remaining_capacity</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Signal that the byte stream has reached its ending</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">end_input</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Indicate that the stream suffered an error.</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">set_error</span><span class="params">()</span> </span>&#123; _error = <span class="literal">true</span>; &#125;</span><br><span class="line">    <span class="comment">//!@&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \name &quot;Output&quot; interface for the reader</span></span><br><span class="line">    <span class="comment">//!@&#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Peek at next &quot;len&quot; bytes of the stream</span></span><br><span class="line">    <span class="comment">//! \returns a string</span></span><br><span class="line">    <span class="function">std::string <span class="title">peek_output</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Remove bytes from the buffer</span></span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">pop_output</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span></span><br><span class="line">    <span class="comment">//! \returns a string</span></span><br><span class="line">    <span class="function">std::string <span class="title">read</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns `true` if the stream input has ended</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">input_ended</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns `true` if the stream has suffered an error</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">error</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _error; &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns the maximum amount that can currently be read from the stream</span></span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">buffer_size</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns `true` if the buffer is empty</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">buffer_empty</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \returns `true` if the output has reached the ending</span></span><br><span class="line">    <span class="function"><span class="type">bool</span> <span class="title">eof</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">    <span class="comment">//!@&#125;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//! \name General accounting</span></span><br><span class="line">    <span class="comment">//!@&#123;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Total number of bytes written</span></span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">bytes_written</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">//! Total number of bytes popped</span></span><br><span class="line">    <span class="function"><span class="type">size_t</span> <span class="title">bytes_read</span><span class="params">()</span> <span class="type">const</span></span>;</span><br><span class="line">    <span class="comment">//!@&#125;</span></span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">endif</span>  <span class="comment">// SPONGE_LIBSPONGE_BYTE_STREAM_HH</span></span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&quot;byte_stream.hh&quot;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// Dummy implementation of a flow-controlled in-memory byte stream.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// For Lab 0, please replace with a real implementation that passes the</span></span><br><span class="line"><span class="comment">// automated checks run by `make check_lab0`.</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// You will need to add private members to the class declaration in `byte_stream.hh`</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span>... Targs&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">DUMMY_CODE</span><span class="params">(Targs &amp;&amp;... <span class="comment">/* unused */</span>)</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line"></span><br><span class="line">ByteStream::<span class="built_in">ByteStream</span>(<span class="type">const</span> <span class="type">size_t</span> capacity) : _capacity(capacity),</span><br><span class="line">    _bytes_written(<span class="number">0</span>), _bytes_read(<span class="number">0</span>), _buffer_size(<span class="number">0</span>), _remaining_capacity(capacity), _buffer(<span class="string">&#x27;0&#x27;</span>,_capacity),</span><br><span class="line">    _input_ended(<span class="literal">false</span>), _eof(<span class="literal">false</span>), _buffer_empty(<span class="literal">true</span>)&#123;</span><br><span class="line">    _error = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">ByteStream::write</span><span class="params">(<span class="type">const</span> string &amp;data)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">buffer_empty</span>())&#123;<span class="comment">// see if buffer is empty</span></span><br><span class="line">        _buffer_empty = <span class="literal">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (data.<span class="built_in">size</span>() &gt;= _remaining_capacity)&#123;</span><br><span class="line">        <span class="type">size_t</span> len = _remaining_capacity;</span><br><span class="line">        _buffer.<span class="built_in">replace</span>(_buffer.<span class="built_in">begin</span>() + _buffer_size, _buffer.<span class="built_in">end</span>(), data);</span><br><span class="line">        _bytes_written += _remaining_capacity;</span><br><span class="line">        _buffer_size = _capacity;</span><br><span class="line">        _remaining_capacity = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">return</span> len;</span><br><span class="line">    &#125;</span><br><span class="line">    _buffer.<span class="built_in">replace</span>(_buffer.<span class="built_in">begin</span>() + _buffer_size, _buffer.<span class="built_in">begin</span>() + _buffer_size + data.<span class="built_in">size</span>(), data);</span><br><span class="line">    _bytes_written += data.<span class="built_in">size</span>();</span><br><span class="line">    _buffer_size += data.<span class="built_in">size</span>();</span><br><span class="line">    _remaining_capacity -= data.<span class="built_in">size</span>();</span><br><span class="line">    <span class="keyword">return</span> data.<span class="built_in">size</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//! \param[in] len bytes will be copied from the output side of the buffer</span></span><br><span class="line"><span class="function">string <span class="title">ByteStream::peek_output</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span> <span class="type">const</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> _buffer.<span class="built_in">substr</span>(<span class="number">0</span>, len);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//! \param[in] len bytes will be removed from the output side of the buffer</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ByteStream::pop_output</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    _buffer.<span class="built_in">erase</span>(<span class="number">0</span>, len);</span><br><span class="line">    _remaining_capacity += len;</span><br><span class="line">    _buffer_size -= len;</span><br><span class="line">    _bytes_read += len;</span><br><span class="line">    <span class="keyword">if</span> (_buffer_size == <span class="number">0</span>)&#123;</span><br><span class="line">        _buffer_empty = <span class="literal">true</span>;</span><br><span class="line">        <span class="keyword">if</span> (<span class="built_in">input_ended</span>())</span><br><span class="line">            _eof = <span class="literal">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//! Read (i.e., copy and then pop) the next &quot;len&quot; bytes of the stream</span></span><br><span class="line"><span class="comment">//! \param[in] len bytes will be popped and returned</span></span><br><span class="line"><span class="comment">//! \returns a string</span></span><br><span class="line"><span class="function">std::string <span class="title">ByteStream::read</span><span class="params">(<span class="type">const</span> <span class="type">size_t</span> len)</span> </span>&#123;</span><br><span class="line">    std::string read_txt = <span class="built_in">peek_output</span>(len);</span><br><span class="line">    <span class="built_in">pop_output</span>(len);</span><br><span class="line">    <span class="keyword">return</span> read_txt;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">ByteStream::end_input</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    _input_ended = <span class="literal">true</span>;</span><br><span class="line">    <span class="keyword">if</span>(<span class="built_in">buffer_empty</span>())</span><br><span class="line">        _eof = <span class="literal">true</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">ByteStream::input_ended</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _input_ended; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">ByteStream::buffer_size</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _buffer_size; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">ByteStream::buffer_empty</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _buffer_empty; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">bool</span> <span class="title">ByteStream::eof</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _eof; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">ByteStream::bytes_written</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _bytes_written; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">ByteStream::bytes_read</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _bytes_read; &#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">size_t</span> <span class="title">ByteStream::remaining_capacity</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> _remaining_capacity; &#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure></li>
+<li>编写完成后运行 <code>make check_lab0</code>运行所有的测试样例，结果如下：<br><img src="https://pic.imgdb.cn/item/6278c4a10947543129efb80d.jpg" alt="测试结果"></li>
+</ul>
+<p>Tips:在完成Lab1之后，对Lab0的代码进行了重构，删除了一些冗余的数据成员，比如说_buffer_empty、_buffer_size、_remain_capacity等，符合了若无必要，勿增实体这一要求。同时对_buffer存储区的初始化方式做了改变，之间初始化是采用初始化容量，填充’\0’的方法，这实际上很不合理，之后改成了初始化一个空的字符串，容量限制放在其他的代码处，效果好了很多。<br>重构后的代码上传在github上:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/byte_stream.hh">byte_stream.hh</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/byte_stream.cc">byte_stream.cc</a></li>
+</ul>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://purepipha.github.io/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CS144Lab/" rel="tag">CS144Lab</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab1/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            CS144计算机网络Lab1
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/05/08/Welcome/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Welcome</div>
+      </a>
+    
+  </nav>
+
+  
+   
+<div class="gitalk" id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.css">
+
+
+<script src="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.js"></script>
+
+
+<script src="https://cdn.staticfile.org/blueimp-md5/2.19.0/js/md5.min.js"></script>
+
+<script type="text/javascript">
+  var gitalk = new Gitalk({
+    clientID: '23c04b7acf6e60122202',
+    clientSecret: '939a92b2597f5da8d55e5003ce499329851ab1fe',
+    repo: 'Review_storage',
+    owner: 'Purepipha',
+    admin: ['Purepipha'],
+    // id: location.pathname,      // Ensure uniqueness and length less than 50
+    id: md5(location.pathname),
+    distractionFreeMode: false,  // Facebook-like distraction free mode
+    pagerDirection: 'last'
+  })
+
+  gitalk.render('gitalk-container')
+</script>
+
+    
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2022
+        <i class="ri-heart-fill heart_icon"></i> Purepipha
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Pursue Epipha&#39;s blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+ <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/MathJax.js"></script>
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/config/TeX-AMS-MML_HTMLorMML-full.js"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true,
+  };
+</script>
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+ 
+<script src="/js/clickLove.js"></script>
+ 
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>CS144计算机网络Lab1 |  Pursue Epipha&#39;s blog</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    <link rel="alternate" href="/atom.xml" title="Pursue Epipha's blog" type="application/atom+xml">
+</head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-CS144计算机网络Lab1"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  CS144计算机网络Lab1
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab1/" class="article-date">
+  <time datetime="2022-05-08T11:38:17.000Z" itemprop="datePublished">2022-05-08</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Way-of-Seeking/">Way of Seeking</a> / <a class="article-category-link" href="/categories/Way-of-Seeking/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h1><p>这里记录了笔者学习计算机网络Lab1的一些笔记，Lab1实验实现的是一个流重组器，其功能是将接收到的数据段组成一个数据流。</p>
+<ul>
+<li>Lab1实验指导手册：<a target="_blank" rel="noopener" href="https://cs144.github.io/assignments/lab1.pdf">https://cs144.github.io/assignments/lab1.pdf</a></li>
+<li>个人实验项目地址：<a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge">Github</a></li>
+</ul>
+<p>Tips：做实验前，最好复习一下计算机网络的相关知识。<span id="more"></span></p>
+<h1 id="二、实验结构"><a href="#二、实验结构" class="headerlink" title="二、实验结构"></a>二、实验结构</h1><p>Lab1实验文档给我们介绍了前面几个实验的结构，下面的图完整的说明了前五个实验的试验结构。<br><img src="https://pic.imgdb.cn/item/62776e420947543129e65e09.png" alt="Lab1试验结构"><br>其中ByteStream的程序我们已经在Lab0已经实现了。在之后的实验中，我们还会编写：</p>
+<ul>
+<li>StreamReassembler(流重组器)：本实验实现，其功能是将小的比特流碎片以正确的顺序重组成一个连续的流</li>
+<li>TCPReceiver(TCP接收器)： Lab2实现，它掌控入站字节流，功能有两个：告诉发送器它已经成功重组了多少字节(ACK)；发送器被允许现在发送多少字节(flow control)</li>
+<li>TCPSender(TCP发送器): Lab3实现，它掌控出站字节流，涉及重传输策略等。</li>
+<li>TCPConnection(TCP连接): Lab4实现，结合之前的几个实验来创造一个工作的TCP实现。</li>
+</ul>
+<h1 id="三、环境配置"><a href="#三、环境配置" class="headerlink" title="三、环境配置"></a>三、环境配置</h1><p>由于已经做过了Lab0,实验一的环境配置只需要将lab1分支合并到Lab0分支就可以了，在项目根目录下输入<code>git merge orgin/lab1-startercode</code>,合并分支之后你会在writeups,下面看到Lab1.md的文档，然后我们就可以进行代码的编写了，需要编写代码的文件是libsponge&#x2F;stream_reassmebler.hh 和 libsponge&#x2F;stream_reassmebler.cc。</p>
+<h1 id="四、调试方法"><a href="#四、调试方法" class="headerlink" title="四、调试方法"></a>四、调试方法</h1><ol>
+<li>gdb调试<br>输入下面的命令，生成可以调试的gdb文件：<ul>
+<li>cmake .. -DCMAKE_BUILD_TYPE &#x3D; Debug</li>
+<li>make<br>运行 make check_lab1，找到执行错误的test文件，记住名称，去build&#x2F;tests里找到对应测试程序文件，使用gdb命令进行调试。</li>
+</ul>
+</li>
+<li>IDE Vscode 调试<br>笔者使用的IDE是Vscode，这里使用了大佬的.vscode文件夹下的json文件来进行调试,网址如下：(<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000039087458)%EF%BC%8C%E8%BF%99%E6%A0%B7%E5%B0%B1%E5%8F%AF%E4%BB%A5%E9%80%9A%E8%BF%87%E5%9C%A8IDE%E9%87%8C%E9%9D%A2%E6%89%93%E6%96%AD%E7%82%B9%E6%9D%A5%E8%B0%83%E8%AF%95%EF%BC%8C%E5%AF%B9%E5%B0%8F%E7%99%BD%E6%9D%A5%E8%AF%B4%E6%9B%B4%E9%80%82%E5%90%88%E3%80%82">https://segmentfault.com/a/1190000039087458)，这样就可以通过在IDE里面打断点来调试，对小白来说更适合。</a><br>.vscode里配置文件的代码：<a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/tree/lab0-startercode/.vscode">@github.&#x2F;vsocde</a></li>
+</ol>
+<h1 id="五、-StreamReassmbler程序设计"><a href="#五、-StreamReassmbler程序设计" class="headerlink" title="五、 StreamReassmbler程序设计"></a>五、 StreamReassmbler程序设计</h1><ol>
+<li>要求<br>要求我们实现的流重组器，具有以下特性：</li>
+</ol>
+<ul>
+<li>接收数据子段，包括数据子段的内容，起始序列号，以及文件结尾标志<blockquote>
+<p>这里的序列号实际上就是TCP Segment里的序列号</p>
+</blockquote>
+</li>
+<li>输出重组后的字节流</li>
+<li>对数据子段超出容量的部分进行截断</li>
+<li>重组数据字段为字节流(这里需要分情况)<ul>
+<li>可以写入重组字节流的子段<blockquote>
+<p>写入重组字节流(若存在重叠， 写入未重叠部分)<br>判断是否可以合并之前存储的不满足写入条件的字段</p>
+</blockquote>
+</li>
+<li>不可以写入重组字节流的子段<blockquote>
+<p>缓存该子段<br>判断是否与缓存区的其他字段重合，若重合，则合并这些重合的子段</p>
+</blockquote>
+</li>
+<li>接受到已经重组的子段，丢弃处理</li>
+</ul>
+</li>
+<li>对容量有严格的限制：<br><img src="https://pic.imgdb.cn/item/627872780947543129cf6522.jpg" alt="容量限制"><blockquote>
+<p>对容量进行限制，这里采用的最好的方法就是记录字节流第一个字节的序列号，以及加上容量之后第一个不可接受的字节的序列号，若超出该范围，进行截断处理</p>
+</blockquote>
+</li>
+</ul>
+<p>Tips:这个实验需要多画一些图，将各种子段重叠的情况都考虑进去，然后做相应的处理。<br>2. 程序设计</p>
+<ul>
+<li><p>数据结构的选取<br>这里核心是选取一个合适的数据结构来存储不能写入输出流的子段，即上图中红色部分的子段。这里刚开始笔者采用的是使用一个字节流来存储，后面字节流来存储这个数据段的实现太困难了，而且执行的效率肯定也不够高，因为有效信息没有存储和利用(每个段的起始字节号)。</p>
+<blockquote>
+<p>之后笔者参考了其他人的做法，目前看到了两种：</p>
+<ul>
+<li>采用一个自定义的结构体，然后用set存储；</li>
+<li>采用pair&lt;size_t, string&gt;存储子段，然后放入map中；</li>
+</ul>
+<p>笔者选择了第一种， 这里定义了一个seg结构体，存储子段的起始字节序列号、结尾字节序列号、以及字符串的长度，之所以还存储结尾字节序列号是笔者发现在处理重叠时，该数据需要反复计算，因此存储了它。为seg结构体重载了operator&lt;，使得这些数据子段可以按照正确的顺序从小到大存储在set中。</p>
+</blockquote>
+</li>
+<li><p>函数的设计<br>这个实验的核心是设计push_substring()函数，该函数需要对不同的子段进行不同的处理，出于模块化程序设计的思想，这里设计了几个函数来处理不同字段。<br>push_substring()在接收到一个字段之后：</p>
+<ol>
+<li>确认该子段是否需要截断，通过比较 index + data.size() 与 _first_unacceptable的大小，若大于，则截断该数据。</li>
+<li>生成一个new_seg,判断该子段是否可以写入输出流，将index与_first_unassembeld比较，若index&lt;&#x3D;_first_unassembled，则可以写入，调用write_seg()函数</li>
+<li>若该子段不可以写入输出流，则需要存储在set<seg>中，这里需要处理该子段与其他子段是否重叠的情况，因此调用handle_overlap()函数。</li>
+</ol>
+<p>接下来的重点就是分别实现上面提到的几个函数：</p>
+<ul>
+<li>write_seg()函数<br>该函数首先将new_seg写入到输出流中，写入完成后，开始判断会不会与辅助存储区的段重合。<br>这里重写判断的是辅助缓冲区的第一段,分以下几种情况：<ul>
+<li>部分重合<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:    _seg_index       _first_unassembled     _seg_end_index</span><br><span class="line">                V                    V                     V</span><br><span class="line">            ----+--------------------+---------------------+------</span><br><span class="line">first_seg:  ----///////////////////////////////////////////-------</span><br><span class="line">_output:    /////////////////////////-----------------------------</span><br></pre></td></tr></table></figure>
+对于上面部分重合的情况，需要将first_seg中_first_unassembled的数到_seg_end_index的数据写入到输出流中，然后擦除该段，return</li>
+<li>完全重合<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:      _seg_index        _seg_end_index          _first_unassembled</span><br><span class="line">                V                    V                     V</span><br><span class="line">            ----+--------------------+---------------------+----------</span><br><span class="line">first_seg:  ----/////////////////////---------------------------------</span><br><span class="line">_output:    ///////////////////////////////////////////////-----------</span><br></pre></td></tr></table></figure>
+对于上面完全重合的情况，直接将该段擦除，判断下一段的情况，判断的规则与擦除的段相同。</li>
+<li>没有重合，这种情况比较简单，就不画图了，不做处理，return。</li>
+</ul>
+</li>
+<li>handle_overlap()函数<br>该函数是处理new_seg插入辅助存储区的函数，对于new_seg来说，需要判断它与辅助存储区的其他段的重叠情况，这里采用的策略是从辅助存储区的第一个迭代器开始，依次判断辅助存储区的当前段与new_seg是否重叠：<br>不重叠，不做处理，重叠的话，调用merge_seg()函数，然后擦除该段。<br>在对整个存储区的段全部判断完毕后，将new_seg增加到辅助存储区中。<br>Tips:这里擦除段时，会使迭代器指向错误，这里采用的策略是，循环开始后，先记录迭代器的下一项，next_iter &#x3D; ++iter;然后再做iter–处理，回到迭代器指向的当前项，循环体结尾iter &#x3D; next_iter;这样就可以避免擦除数据段的影响了。</li>
+<li>merge_seg()函数将new_seg与other_seg的数据合并，写入new_seg中，有四种情况：<ul>
+<li>new_seg 完全覆盖 other_seg<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:      new_seg_index   other_seg_index     other_seg_end   new_seg_end</span><br><span class="line">                 V                 V                   V             V</span><br><span class="line">            -----+-----------------+-------------------+-------------+-----</span><br><span class="line">new_seg     -----////////////////////////////////////////////////////------</span><br><span class="line">other_seg   -----------------------////////////////////--------------------</span><br></pre></td></tr></table></figure>
+这种情况不做处理，直接返回就可以;</li>
+<li>other_seg 完全覆盖 new_seg<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:      other_seg_index   new_seg_index     new_seg_end   other_seg_end</span><br><span class="line">                   V               V                 V               V</span><br><span class="line">            -------+---------------+-----------------+---------------+-----</span><br><span class="line">new_seg     -----------------------//////////////////----------------------</span><br><span class="line">other_seg   -------//////////////////////////////////////////////////------</span><br></pre></td></tr></table></figure>
+这种情况，new_seg &#x3D; other_seg;</li>
+<li>other_seg 与 new_seg 的右端部分重合<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:      new_seg_index   other_seg_index     new_seg_end   other_seg_end</span><br><span class="line">                 V                 V                 V               V</span><br><span class="line">            -----+-----------------+-----------------+---------------+-----</span><br><span class="line">new_seg     -----////////////////////////////////////----------------------</span><br><span class="line">other_seg   -----------------------//////////////////////////////////------</span><br></pre></td></tr></table></figure>
+这种情况，将other_seg中未重合的数据增加到new_seg的右端，更新new_seg的结尾序列号项</li>
+<li>other_seg 与 new_seg 的左端部分重合<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">index:      new_seg_index   other_seg_index     other_seg_end   new_seg_end</span><br><span class="line">                 V                 V                   V             V</span><br><span class="line">            -----+-----------------+-------------------+-------------+-----</span><br><span class="line">new_seg     -----////////////////////////////////////////////////////------</span><br><span class="line">other_seg   -----------------------////////////////////--------------------</span><br></pre></td></tr></table></figure>
+这种情况，将other_seg中未重合的数据增加到new_seg的左端，更新new_seg的起始序列号项</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<ol start="3">
+<li>具体实现<br>实现的代码在github上：</li>
+</ol>
+<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/stream_reassembler.hh">stream_reassembler.hh</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/stream_reassembler.cc">stream_reassembler.cc</a><br>测试结果过下：<br><img src="https://pic.imgdb.cn/item/6278bb840947543129d2382c.jpg" alt="测试结果"><br>整个用时是0.54s，还可以接受吧。</li>
+</ul>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://purepipha.github.io/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab1/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CS144Lab/" rel="tag">CS144Lab</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab0/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">CS144计算机网络Lab0</div>
+      </a>
+    
+  </nav>
+
+  
+   
+<div class="gitalk" id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.css">
+
+
+<script src="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.js"></script>
+
+
+<script src="https://cdn.staticfile.org/blueimp-md5/2.19.0/js/md5.min.js"></script>
+
+<script type="text/javascript">
+  var gitalk = new Gitalk({
+    clientID: '23c04b7acf6e60122202',
+    clientSecret: '939a92b2597f5da8d55e5003ce499329851ab1fe',
+    repo: 'Review_storage',
+    owner: 'Purepipha',
+    admin: ['Purepipha'],
+    // id: location.pathname,      // Ensure uniqueness and length less than 50
+    id: md5(location.pathname),
+    distractionFreeMode: false,  // Facebook-like distraction free mode
+    pagerDirection: 'last'
+  })
+
+  gitalk.render('gitalk-container')
+</script>
+
+    
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2022
+        <i class="ri-heart-fill heart_icon"></i> Purepipha
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Pursue Epipha&#39;s blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+ <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/MathJax.js"></script>
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/config/TeX-AMS-MML_HTMLorMML-full.js"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true,
+  };
+</script>
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+ 
+<script src="/js/clickLove.js"></script>
+ 
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
