@@ -7,6 +7,233 @@
 ]]></content>
   </entry>
   <entry>
+    <title>CS144计算机网络Lab2</title>
+    <url>/2022/05/10/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab2/</url>
+    <content><![CDATA[<h1 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h1><p>这里记录了笔者学习计算机网络Lab2的一些笔记，Lab2实验实现的是一个TCP接收器，TCP接收器的任务处理入站的字节流，将入站的TCP段转换成入站的字节流。</p>
+<ul>
+<li>Lab2实验指导手册：<a href="https://cs144.github.io/assignments/lab2.pdf">https://cs144.github.io/assignments/lab2.pdf</a></li>
+<li>个人实验项目地址：<a href="https://github.com/Purepipha/sponge">Github</a></li>
+</ul>
+<p>Tips：做实验前，最好复习一下计算机网络的相关知识，尤其是TCP那一块的相关知识。<span id="more"></span></p>
+<h1 id="二、环境配置"><a href="#二、环境配置" class="headerlink" title="二、环境配置"></a>二、环境配置</h1><p>和Lab1类似，合并lab2分支就可以了，在终端切换至项目目录sponge，输入命令<code>git merge origin/lab2-startercode </code>, 合并分支就可以开始实验了。</p>
+<h1 id="三、TCPReceiver介绍"><a href="#三、TCPReceiver介绍" class="headerlink" title="三、TCPReceiver介绍"></a>三、TCPReceiver介绍</h1><p>Lab2 实现的是TCP接受器。</p>
+<blockquote>
+<p>TCP接受器通过segment_received()方法接受来自互联网的段<br>转换这些段来调用Lab1实现的流重组器StreamReassembler<br>最终这些段写入入站字节流，应用读该字节流，就和在lab0从TCP套接字读一样。</p>
+</blockquote>
+<p>TCPReceiver负责告诉发送器两个内容：</p>
+<blockquote>
+<ol>
+<li>第一个未重组字节的序列号 _first_unassembled,这个序列号被叫做 “acknowledgment number” 或者 “ackno”。这是接收器需要从发送器接收的第一个字节。</li>
+<li>_first_unassembled索引与_first_unacceptable索引的距离，叫做窗口尺寸。</li>
+</ol>
+</blockquote>
+<p>上述两个内容可以统一描述为TCP发送器被允许发送的索引范围。TCP接收器使用窗口可以控制入站数据流，告诉发送器在它准备接收更多的数据前可以发送多少数据。ackno也被叫作窗口的左边缘，ackno + window size 叫作窗口右边缘。<br>总结一下，TCP发送器需要做三件事：</p>
+<blockquote>
+<ul>
+<li>接收来自互联网的TCP段</li>
+<li>将这些段重组入入站字节流</li>
+<li>告诉接收器ackno和窗口尺寸进行流控制</li>
+</ul>
+</blockquote>
+<h1 id="四、-64-bit-索引号与-32-bit-序列号之前的转换"><a href="#四、-64-bit-索引号与-32-bit-序列号之前的转换" class="headerlink" title="四、 64-bit 索引号与 32-bit 序列号之前的转换"></a>四、 64-bit 索引号与 32-bit 序列号之前的转换</h1><p>在流重组器StreamReassembler中，流索引好 stream index 是 64-bit，然而在TCP头文件中，存储空间很珍贵，字节的索引使用一个 32-it 的序列号表示。这增加了三点复杂性：</p>
+<blockquote>
+<ol>
+<li>你需要规划 32-bit 的整数来卷绕一圈： 在TCP的流的长度是任意的——对于能够通过TCP发送的字节流的长度没有限制。 Once a 32-bit 序列号增加到 $ 2^{32} - 1 $, 下一个在流中的字节的序列号将是 0。</li>
+<li>TCP 序列号以随机的值开始：为了改进安全性和避免受到早期两个终端连接的旧段的干扰， TCP 尝试着确保序列号不能被 <strong>猜测 和 不可能重复</strong>。因此一个流的序列号不会以零开始。流的第一个序列号是称作初始序列号(ISN)的 32-bit 随机数，该序列号表示 SYN，剩余的序列号将会在SYN后面：第一个字节数据的序列号为 ISN + 1(mod $2^{32}$)，第二个字节的序列号 ISN + 2(mod $2^{32}$),等。</li>
+<li>逻辑上的开始和结束各占一个序列号：为了确保所有数据的接收， TCP确保了流的开始和结束被可靠接受了。因此，TCP 中的 SYN 和 FIN 控制标志被赋予了序列号。它们各占一个序列号，SYN 标志占领的序列号是 ISN。流中数据的每一个字节也占一个序列号。注意 SYN 和 FIN 不是流自己的部分并且也不是字节，它们代表了字节流它自己的开始和结束。</li>
+</ol>
+</blockquote>
+<p>为了更好的实现TCP段的序列号到流索引号的转换，这里对三种序列号的定义做了说明：</p>
+<blockquote>
+<ul>
+<li>TCP段的序列号，又叫做相对序列号，以随机的isn开始，且会循环；</li>
+<li>绝对序列号，总是以零开始且不会循环；</li>
+<li>流索引号，以零开始，且不包括开始和结束标志，即SYN和FIN。</li>
+</ul>
+</blockquote>
+<p>为了显示这三个序列号的差别，这里给一个例子，字节流只包含三个字符串’cat’，SYN的TCP序列号是 $2^{32} - 2$，第二行是绝对序列号，第三行是，每个字节流索引。</p>
+<table>
+<thead>
+<tr>
+<th align="right">element</th>
+<th align="center"><code>SYN</code></th>
+<th align="center">c</th>
+<th>a</th>
+<th>t</th>
+<th align="center"><code>FIN</code></th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="right">seqno</td>
+<td align="center">$2^{32} - 2$</td>
+<td align="center">$2^{32} - 1$</td>
+<td>0</td>
+<td>1</td>
+<td align="center">2</td>
+</tr>
+<tr>
+<td align="right">absolute seqno</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td>2</td>
+<td>3</td>
+<td align="center">4</td>
+</tr>
+<tr>
+<td align="right">stream index</td>
+<td align="center"></td>
+<td align="center">0</td>
+<td>1</td>
+<td>2</td>
+<td align="center"></td>
+</tr>
+</tbody></table>
+<p>下面的图片展示了三个TCP索引的不同</p>
+<p><img src="https://pic.imgdb.cn/item/627eef3b09475431290099f4.jpg" alt="不同类型TCP索引的不同"><br>我们可以发现绝对序列号到流索引的转换很容易，只需要减一或者加一就可以了，绝对序列号和相对序列号之间的转换比较复杂，我们这里需要实现的就是相对序列号和绝对序列号之间的相互转换，即wrap()函数和 unwrap()函数。<br>这里主要有两个要求：</p>
+<blockquote>
+<ul>
+<li>保证转换要求的准确性</li>
+<li>隐性要求，转换的效率要足够高</li>
+</ul>
+</blockquote>
+<ul>
+<li><p>程序设计：</p>
+<ul>
+<li>wrap()函数接收一个绝对序列号n和一个初始序列号(相对序列号)isn，返回绝对序列号n的相对序列号。根据定义，我们需要首先将n加上isn(相对序列号从isn开始),之后可以递减$2^{32}$ 到小于 $2^{32}$，也可以使用求余数的方式，针对大的序列号，求余数的效率会更高一点，也可以采用按位与的方式。</li>
+<li>unwrap()函数接收三个参数，一个相对序列号n，一个初始序列号(相对序列号)isn，一个绝对序列号checkpoint，其中checkpoint是离计算得到的绝对序列号最近的点。这里刚开始笔者的设计思路是：<blockquote>
+<ul>
+<li>首先让n减去初始序列号isn，这里需要判断isn与n的大小，若isn大于n，n应该加上 $2^{32} - isn$。</li>
+<li>之后记录当前n与checkpoint的差diff，然后在计算$n + 2^{32}$与checkpoint的差next_diff，这里都是计算的绝对值，得到两个结果之后进行比较，一旦diff &lt; next_diff，则说明当前的n就是要求的结果，否则，更新 diff &#x3D; next_diff，$n &#x3D; n + 2^{32}$<br>Tips: 该方法可以通过前三个测试，在第四个round_trip会计算时间很久。</li>
+</ul>
+</blockquote>
+</li>
+<li>因此修改了算法，思路是：<blockquote>
+<ul>
+<li>利用wrap()方法计算checkpoint的相对序列号w_checkpoint；</li>
+<li>比较w_checkpoint与n的大小，分情况处理:<ul>
+<li>w_checkpoint 比 n 大，两者的差 diff &#x3D; w_checkpoint - n,由于w_checkpoint与n的距离最近，因此我们需要计算另一个距离another_diff &#x3D; $2^{32}$ - diff，比较两个距离的大小：<ul>
+<li>如果diff &lt; another_diff &amp;&amp; w_checkpoint &gt;&#x3D; diff，则结果 absolute_sqno &#x3D; checkponit - diff</li>
+<li>否则，absolute_sqno &#x3D; checkpoint + another_diff</li>
+</ul>
+</li>
+<li>w_checkpoint 比 n 小，两者的差 diff &#x3D; n - w_checkpoint - n，由于w_checkpoint的n的距离最近，计算另一个距离another_diff &#x3D; $2^{32}$ - diff，比较两个距离的大小：<ul>
+<li>如果diff &lt; another_diff || w_checkpoint &lt; another_diff，则结果 absolute_sqno &#x3D; checkpoint + diff</li>
+<li>否则，absolute_sqno &#x3D; cehckpoint - another_diff</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+<li><p>实现代码：<a href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/wrapping_integers.cc">wrapping_integers.cc</a></p>
+</li>
+<li><p>测试：在build目录，输入make编译完成后，运行<code>ctest -R wrap</code>。</p>
+</li>
+</ul>
+<h1 id="五、实现TCP接收器-TCP-receiver"><a href="#五、实现TCP接收器-TCP-receiver" class="headerlink" title="五、实现TCP接收器(TCP receiver)"></a>五、实现TCP接收器(TCP receiver)</h1><p>前面总结了TCP接收器要做的三件事情：</p>
+<blockquote>
+<ul>
+<li>接收来自同级的TCP段</li>
+<li>使用流重组器重组字节流</li>
+<li>计算ack号和窗口尺寸。</li>
+</ul>
+</blockquote>
+<p>下图所示的是TCP段的格式，其中非灰色的区域是我们这个实验会用到的信息，有序列号，负载数据，SYN和FIN标志，这两个标志是被发送器写的，被接收器读和相应的。<br><img src="https://pic.imgdb.cn/item/627f0b9209475431294f23fb.jpg" alt="TCP段格式"><br>TCP接收器提供的接口：</p>
+<blockquote>
+<ol>
+<li>segment_received()，该方法在每次收到同级新段的时候会被调用，实现的任务：<ul>
+<li>如果必要，设置初始序列号，当SYN标志为True时，设置初始序列号</li>
+<li>压入任何数据或者流结束标记给流重组器</li>
+</ul>
+</li>
+<li>ackno()，该方法返回接收器第一个不知道的字节的序列号，即窗口的左边缘</li>
+<li>window_size()，该方法返回第一个未重组字节序列号到第一个不可接受字节序列号的距离</li>
+</ol>
+</blockquote>
+<p>TCP接收器连接开始到连接结束的演化，下图给了TCP接收器的演化过程：<br><img src="https://pic.imgdb.cn/item/627f0e7b094754312956f3e7.jpg" alt="TCP接收器的演化"><br>TCP演化通过了一系列状态：</p>
+<blockquote>
+<ul>
+<li>等待SYN状态</li>
+<li>流处理状态</li>
+<li>流处理完成状态</li>
+<li>错误状态暂时不需要考虑，在lab4时才需要考虑</li>
+</ul>
+</blockquote>
+<ul>
+<li>程序设计：<ul>
+<li>成员变量定义<blockquote>
+<p>  这里只需要增加一个成员变量_isn，存储初始序列号isn的值，数据结构选择optional<WrappingInt32>，选择该数据结构是因为这样可以<strong>在构造函数初始时，初始化化为一个空的数据成员</strong>。<br><strong>Tips:</strong> 笔者，刚开始是定义了三个状态成员变量，记录三种状态，初始序列号用一个uint32_t数据结构记录，这样也可以实现相应的功能，但是代码比较复杂，且冗余。</p>
+</blockquote>
+</li>
+<li>成员函数定义<blockquote>
+<p>  TCP接收器需要经过三个状态的演化，因此在程序设计时考虑为需要有动作的状态定义相应的函数。这里有动作的状态有两个：</p>
+<ul>
+<li>LISTEN状态：有动作——设计一个listen函数，主要功能就是接收SYN信号，触发条件为ackno()没有值时；</li>
+<li>SYN_RECV状态：有动作——设计一个syn_recv函数，主要功能是将段的数据写入到流重组器，触发条件为ackno()有值且输入未结束时。<br>  FIN_RECV状态没有动作，因此不必设计函数，这里需要注意的是该状态时，ackno()的输出值与SYN_RECV状态是ackno()的输出结果不一样，增加了一位FIN</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>函数实现<br>这里只介绍使用optional<WrappingInt32>记录初始序列号的程序的实现方法。<ul>
+<li>listen()函数<blockquote>
+<p>该函数只需要在接收到syn信号时，更新成员变量_isn的值即可，其他情况不做处理。</p>
+</blockquote>
+</li>
+<li>syn_recv()函数<blockquote>
+<p>该函数需要调用push_substring()函数，因此需要将push_substring()的参数都计算出来:</p>
+<ul>
+<li>字符串data: 读段的存储区payload的copy；</li>
+<li>index(流索引号)：这里将段的seqno转换成绝对序列号然后再减一就可以得到；</li>
+<li>eof标志: 和fin信号是一致的。</li>
+</ul>
+</blockquote>
+<p>得到这些参数后，调用push_substring()函数。<br><strong>Tips：</strong> 这里有一个例外，需要单独处理，即syn信号带了数据，因此可以增加一个if判断，syn为真时，index &#x3D; 0。</p>
+</li>
+<li>segment_received()<blockquote>
+<p>实现了上述两个函数，该函数只需要判断当前TCP所处的状态，然后调用对应状态的函数即可:</p>
+<ul>
+<li>LISTEN状态，调用listen()函数；</li>
+<li>SYN_RECV状态，调用syn_recv()函数</li>
+</ul>
+</blockquote>
+</li>
+<li>ackno()<blockquote>
+<p>该函数首先判断TCP所处的状态:</p>
+<ul>
+<li>LISTEN状态，返回{}</li>
+<li>SYN_RECV状态，返回unwrap()计算结果 + 1(SYN)</li>
+<li>FIN_RECV状态，返回unwrap()计算结果 + 1(SYN) + 1(FIN)</li>
+</ul>
+</blockquote>
+</li>
+<li>window_size()<blockquote>
+<p>该函数只需要调用流重组器输出流的remain_capacity()函数即可</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>实现代码：<ul>
+<li><a href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/tcp_receiver.hh">tcp_receiver.hh</a></li>
+<li><a href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/tcp_receiver.cc">tcp_receiver.cc</a></li>
+</ul>
+</li>
+<li>测试结果<br><img src="https://pic.imgdb.cn/item/628070e709475431292ab9d9.jpg" alt="TCPReceiver测试结果"></li>
+</ul>
+]]></content>
+      <categories>
+        <category>Way of Seeking</category>
+        <category>计算机网络</category>
+      </categories>
+      <tags>
+        <tag>CS144Lab</tag>
+        <tag>计算机网络</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>CS144计算机网络Lab1</title>
     <url>/2022/05/08/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab1/</url>
     <content><![CDATA[<h1 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h1><p>这里记录了笔者学习计算机网络Lab1的一些笔记，Lab1实验实现的是一个流重组器，其功能是将接收到的数据段组成一个数据流。</p>
