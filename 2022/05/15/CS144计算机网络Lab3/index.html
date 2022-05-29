@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+
+
+<html lang="zh-CN">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>CS144计算机网络Lab3 |  Pursue Epipha&#39;s blog</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    <link rel="alternate" href="/atom.xml" title="Pursue Epipha's blog" type="application/atom+xml">
+</head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-CS144计算机网络Lab3"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  CS144计算机网络Lab3
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/05/15/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab3/" class="article-date">
+  <time datetime="2022-05-15T15:05:57.000Z" itemprop="datePublished">2022-05-15</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Way-of-Seeking/">Way of Seeking</a> / <a class="article-category-link" href="/categories/Way-of-Seeking/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.6k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10 分钟</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h1 id="一、简介"><a href="#一、简介" class="headerlink" title="一、简介"></a>一、简介</h1><p>这里记录了笔者学习计算机网络Lab3的一些笔记，Lab3实验实现的是一个TCP接收器，TCP接收器的任务处理入站的字节流，将入站的TCP段转换成入站的字节流。</p>
+<ul>
+<li>Lab3实验指导手册：<a target="_blank" rel="noopener" href="https://cs144.github.io/assignments/lab3.pdf">https://cs144.github.io/assignments/lab3.pdf</a></li>
+<li>个人实验项目地址：<a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge">Github</a></li>
+</ul>
+<p>Tips：做实验前，最好复习一下计算机网络的相关知识，尤其是TCP那一块的相关知识。<span id="more"></span></p>
+<h1 id="二、环境配置"><a href="#二、环境配置" class="headerlink" title="二、环境配置"></a>二、环境配置</h1><p>和Lab2类似，合并lab3分支就可以了，在终端切换至项目目录sponge，输入命令<code>git merge origin/lab3-startercode </code>, 合并分支就可以开始实验了。</p>
+<h1 id="三、-TCPSender-简述"><a href="#三、-TCPSender-简述" class="headerlink" title="三、 TCPSender 简述"></a>三、 TCPSender 简述</h1><h2 id="1-TCPSender-功能"><a href="#1-TCPSender-功能" class="headerlink" title="1. TCPSender 功能"></a>1. TCPSender 功能</h2><p>TCPSender 负责从一个某些发送边的应用程序创造或者写入的字节流读取数据，把流转换成一系列的出栈TCP段。在另一边，TCPReceiver 将这些段转换回最初的字节流，发送ack和窗口尺寸返回sender。<br>TCPSender 只读被 receiver 写入的段域：ackno 和 window size。下图展示了 TCP段 的结构，其中蓝色部分为 TCPReceiver感兴趣的域，在 lab2 中已说明，红色部分为会被sender读取的域。<br><img src="https://pic.imgdb.cn/item/628184970947543129479135.jpg" alt="TCP Segment"><br>TCPSender 主要负责：</p>
+<blockquote>
+<ul>
+<li>保持追踪接受窗口(处理收到的ackno和window size)</li>
+<li>满足条件时，通过从字节流读取创建新的 TCP段 (如果需要，包括 SYN 和 FIN 标志)，发送这些 TCP段 来填充窗口。直到窗口满或者字节流空之前，发送器应该保持发送段。</li>
+<li>保持追踪被发送但是没有ack返回信号的段——丢失段</li>
+<li>如果足够的时间结束了，还没有收到ack信号，重发送丢失段</li>
+</ul>
+</blockquote>
+<h2 id="2-TCPSender-判断段丢失的条件"><a href="#2-TCPSender-判断段丢失的条件" class="headerlink" title="2. TCPSender 判断段丢失的条件"></a>2. TCPSender 判断段丢失的条件</h2><p>TCPSender 将发送一堆 TCP段。每一个 TCP段 将包含 一个来自出站字节流(可能是空)的字串，TCP段 使用序列号来索引它在流中的位置，使用 SYN 标记流的开始，FIN 标记流的结束。<br>TCPSender 将会追踪出站的段直到该段占用的序列号被通知收到。TCPSender 的拥有者会调用 TCPSender 的 tick 方法，该方法指示传递时间。TCPSender 负责查阅出站段的集合决定最先发送的出站段是否太长时间没有收到ack信号，如果是，该段需要重传输。<br>下面是一些出站时间太长的规则：</p>
+<blockquote>
+<ul>
+<li>每过几毫秒，TCPSender 的 tick 方法会被调用返回一个指示从上次被调用到现在间隔了多少毫秒的参数。使用该方法保持对 TCPSender 存活总时间的记录。不要尝试调用 time 或者 clock 函数，tick方法是本文仅有的时间接口。</li>
+<li>当 TCPSender 被构建时，需要提供一个参数指示 retransmission timeout(RTO) 的初始值。RTO 是在重发送出站 TCP段 之前等待的毫秒的数目。RTO 的值将会随时间改变，但是初始值是相同的。</li>
+<li>实现一个重传输计时器：一个警报在特定时间开始，一旦 RTO 过去，该警报到期。这里强调一下：时间记录来自 tick 方法的调用。</li>
+<li>每次发送一个包含数据的段，如果计时器没有运行，开启它以至于在 RTO 毫秒后将会过期。</li>
+<li>当所有出站的数据收到ack信号，停止重传输计时。</li>
+<li>tick 被调用并且重传输计时器已经到期：<br>(a) 重传输还没有被 TCPReceiver 完全 ack 的最早的段。你将需要使用某些数据结构来存储出战的段使重传输最早的段成为可能<br>(b) 如果窗口尺寸非零：<br>i. 保持追踪连续重传输的数目，一重传输之后就增加它。TCPConnection 将会使用该信息来决定是否连接是无望的需要丢弃；<br>ii. 双倍RTO的值。这称作指数回退——它在糟糕的网络中减缓了重传输来避免使工作更糟糕。<br>(c) 在 RTO 毫秒计时器过期后，重置重传输计时器并且开启它。</li>
+<li>当 接收器给了发送器 ackno 信号告知成功接收了新数据 (ackno反映了绝对序列号大于以前的ackno)：<br>(a) 设定 RTO 返回初始值；<br>(b) 如果发送器有任何出栈数据，重开始重传输计时器以至于它将在 RTO 毫秒后过期；<br>(c) 重置连续重传输的计数为0。</li>
+</ul>
+</blockquote>
+<h2 id="3-TCPSender-要求"><a href="#3-TCPSender-要求" class="headerlink" title="3. TCPSender 要求"></a>3. TCPSender 要求</h2><ul>
+<li>TCPSender 实现的具体接口：<ul>
+<li>void fill_window()<blockquote>
+<ul>
+<li>TCPSender 需要填满窗口: 只要有新字节并且窗口空间可得到，TCPSender 就会以 TCPSegments 发送尽可能多的字节。</li>
+<li>确保发送的没一个 TCPSegments 在接收器窗口的里面，同时使每一个 TCPSegment 尽可能大，同时不超过 TCPConfig::MAX_PAYLOAD_SIZE(1452 bytes)。</li>
+<li>可以使用 TCPSegment::length_in_sequence_space() 方法来计算一个段占领的序列号数目，注意 SYN 和 FIN 标志都占一个序列号。</li>
+<li>窗口尺寸是0时，发送器需要最终发送一个被接收器拒绝(没有ack)的单字节，它将刺激接收器在有更多的窗口空间是发送一个新的ack段。没有发送的单字节，发送器监管永远不会知道它被允许再一次发送。</li>
+</ul>
+</blockquote>
+</li>
+<li>void ack_received()<blockquote>
+<ul>
+<li>从接收器接收到的的段，包含了左边缘和右边缘的窗口信息。TCPSender 应该浏览出站段的集合并且移出已经被完全 ack (ackno 大于该段的所有序列号) 的段。</li>
+<li>TCPSender 应该再一次填充窗口，如果开放了新的空间。</li>
+</ul>
+</blockquote>
+</li>
+<li>void tick()<blockquote>
+<ul>
+<li>已经过去的时间——自从上一次方法被调用已经过去的毫秒数。</li>
+<li>发送器也许需要重传输出站段。</li>
+</ul>
+</blockquote>
+</li>
+<li>void send_empty_segment()<blockquote>
+<ul>
+<li>TCP 应该产生并且发送一个序列空间长度为0的 TCPSegment, 该段带着正确的序列号。</li>
+<li>这个函数会在下一个 TCPConnection 的实验中起作用。</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>TCPSender 会经过的状态<br>在一个字节流中的一生会经过七个状态，如下图所示：<br><img src="https://pic.imgdb.cn/item/6290e79009475431294bac9c.jpg" alt="TCPSender的状态"><br>为了实现lab3的代码，我们需要对这七个状态进行分别处理。<h1 id="四、TCPSender设计及实现"><a href="#四、TCPSender设计及实现" class="headerlink" title="四、TCPSender设计及实现"></a>四、TCPSender设计及实现</h1></li>
+<li>增加的成员变量<ul>
+<li>追踪发送窗口<blockquote>
+<ul>
+<li>左边缘 <code>uint_64t _left_edge&#123;0&#125;</code></li>
+<li>右边缘 <code>uint_64t _right_edge&#123;0&#125;</code></li>
+</ul>
+</blockquote>
+</li>
+<li>追踪发送段<blockquote>
+<p>涉及到数据结构选择，可以与发送段一样选择队列，也可以选择其他数据结构，这里选择了map，因为该数据结构自带key值，且可以排序，无需在自己定义数据结构。</p>
+<ul>
+<li>追踪数据段 <code>map&lt;size_t, TCPSegment&gt; _outstanding_segments&#123;&#125;</code></li>
+</ul>
+</blockquote>
+</li>
+<li>追踪飞行字节数<blockquote>
+<p>该成员定义上可以帮助我们用空间换时间</p>
+<ul>
+<li>飞行字节数 <code>size_t bytes_in_flight&#123;0&#125;</code></li>
+</ul>
+</blockquote>
+</li>
+<li>重传输计时器<blockquote>
+<p>该成员负责记录时间</p>
+<ul>
+<li>size_t _timer_in_ms{0}</li>
+</ul>
+</blockquote>
+</li>
+<li>重传输次数<blockquote>
+<p>该成员负责记录重传输次数</p>
+<ul>
+<li>unsigned int _timer_in_ms{0}</li>
+</ul>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>增加的成员函数<ul>
+<li>发送段—send_segment()<ul>
+<li>该方法的任务：<blockquote>
+<ul>
+<li>更新下一个序列号</li>
+<li>增加fin标志，如果需要</li>
+<li>更新飞行字节数</li>
+<li>发送段(压入发送队列)</li>
+<li>压入追踪段的结构中</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::send_segment</span><span class="params">(TCPSegment &amp; segment)</span> </span>&#123;<span class="comment">//增加FIN标记</span></span><br><span class="line">    _next_seqno += segment.<span class="built_in">length_in_sequence_space</span>(); <span class="comment">//更新_next_seqno</span></span><br><span class="line">    <span class="keyword">if</span> (_stream.<span class="built_in">eof</span>() == <span class="literal">true</span> &amp;&amp; _next_seqno == _stream.<span class="built_in">bytes_written</span>() + <span class="number">1</span> &amp;&amp; _next_seqno &lt; _right_edge) &#123;</span><br><span class="line">        segment.<span class="built_in">header</span>().fin = <span class="literal">true</span>; <span class="comment">//带着fin标志</span></span><br><span class="line">        _next_seqno++; <span class="comment">//加fin的位置</span></span><br><span class="line">    &#125;</span><br><span class="line">    _bytes_in_flight += segment.<span class="built_in">length_in_sequence_space</span>(); <span class="comment">//更新飞行字节数</span></span><br><span class="line">    _segments_out.<span class="built_in">push</span>(segment); <span class="comment">//发送segment</span></span><br><span class="line">    _outstanding_segments.<span class="built_in">insert</span>(<span class="built_in">pair</span>&lt;<span class="type">size_t</span>, TCPSegment&gt;(_next_seqno, segment)); <span class="comment">//记录出站段</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>发送syn段—send_syn()<ul>
+<li>该方法的任务：<blockquote>
+<ul>
+<li>创建SYN段</li>
+<li>调用发送段函数</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::send_syn</span><span class="params">()</span> </span>&#123;<span class="comment">// 发送SYN段</span></span><br><span class="line">    TCPSegment SYN; <span class="comment">//创建SYN段</span></span><br><span class="line">    SYN.<span class="built_in">header</span>().syn = <span class="literal">true</span>; <span class="comment">//设置syn标志为true</span></span><br><span class="line">    SYN.<span class="built_in">header</span>().seqno = _isn; <span class="comment">//设置初始序列号</span></span><br><span class="line">    <span class="built_in">send_segment</span>(SYN); <span class="comment">//发送</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>发送单字节<ul>
+<li>该方法任务：<blockquote>
+<ul>
+<li>创建单字节段</li>
+<li>判断发送的下一个字节是否为fin段</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::send_byte</span><span class="params">()</span> </span>&#123;<span class="comment">//发送单字节</span></span><br><span class="line">    TCPSegment byte_seg; <span class="comment">//定义一个字节段</span></span><br><span class="line">    <span class="keyword">if</span> (_stream.<span class="built_in">buffer_size</span>() &gt; <span class="number">0</span>) &#123;<span class="comment">//还未读取完</span></span><br><span class="line">        byte_seg.<span class="built_in">payload</span>() = _stream.<span class="built_in">read</span>(<span class="number">1</span>); <span class="comment">//读取一个字节数据到payload</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">//读取完流，且处于文件尾</span></span><br><span class="line">        <span class="keyword">if</span> (_stream.<span class="built_in">eof</span>() == <span class="literal">true</span>) &#123;</span><br><span class="line">            byte_seg.<span class="built_in">header</span>().fin = <span class="literal">true</span>; <span class="comment">//发送fin段</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    byte_seg.<span class="built_in">header</span>().seqno = <span class="built_in">next_seqno</span>(); <span class="comment">//序列号写入 TCPHeader</span></span><br><span class="line">    <span class="built_in">send_segment</span>(byte_seg); <span class="comment">//发送</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>发送fin段<ul>
+<li>该方法任务：<blockquote>
+<ul>
+<li>创建FIN段</li>
+<li>发送FIN段</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::send_fin</span><span class="params">()</span> </span>&#123;<span class="comment">// 发送FIN段</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="built_in">next_seqno_absolute</span>() &lt; _right_edge) &#123;</span><br><span class="line">        TCPSegment FIN;  <span class="comment">//创建FIN段</span></span><br><span class="line">        FIN.<span class="built_in">header</span>().fin = <span class="literal">true</span>; <span class="comment">//设置初始序列号</span></span><br><span class="line">        FIN.<span class="built_in">header</span>().seqno = <span class="built_in">wrap</span>(_next_seqno, _isn); <span class="comment">//更新头序列号</span></span><br><span class="line">        <span class="built_in">send_segment</span>(FIN); <span class="comment">//发送</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>重置计时<ul>
+<li>该方法任务<blockquote>
+<ul>
+<li>判断是否可以重置计时</li>
+<li>可以—重置</li>
+<li>更新左右边缘</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::timer_reset</span><span class="params">(<span class="type">uint64_t</span> ackno_absolute, <span class="type">uint16_t</span> window_size)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (ackno_absolute &gt; _left_edge) &#123;<span class="comment">//可以重置计时</span></span><br><span class="line">        <span class="keyword">while</span> (_times_retransmitted &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            _initial_retransmission_timeout &gt;&gt;= <span class="number">1</span>; <span class="comment">//时间减半</span></span><br><span class="line">            --_times_retransmitted; <span class="comment">//减次数</span></span><br><span class="line">        &#125;</span><br><span class="line">        _left_edge = ackno_absolute; <span class="comment">//更新左边缘</span></span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;<span class="comment">//接收到的ackno比以前接受到的小或者相等</span></span><br><span class="line">        <span class="keyword">if</span> (window_size != <span class="number">0</span> &amp;&amp; _timer_in_ms &gt; _initial_retransmission_timeout) &#123;<span class="comment">//窗口尺寸不为0且超时</span></span><br><span class="line">            <span class="built_in">tick</span>(<span class="number">1</span>); <span class="comment">//调用tick检验结果</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    _right_edge = _left_edge + window_size; <span class="comment">//更新右边缘</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li>更新追踪出站段<ul>
+<li>该方法任务<blockquote>
+<ul>
+<li>清空已经ack的段</li>
+</ul>
+</blockquote>
+</li>
+<li>具体实现<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">TCPSender::outstanding_segments_update</span><span class="params">()</span> </span>&#123;<span class="comment">// 删除完全ack的段</span></span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">auto</span> iter = _outstanding_segments.<span class="built_in">begin</span>(); iter != _outstanding_segments.<span class="built_in">end</span>();) &#123;</span><br><span class="line">        <span class="keyword">auto</span> next_iter = ++iter; <span class="comment">//记录下一项</span></span><br><span class="line">        iter--; <span class="comment">//恢复原来的项</span></span><br><span class="line">        <span class="keyword">if</span> ((*iter).first &lt;= _left_edge) &#123;</span><br><span class="line">            _bytes_in_flight -= (*iter).second.<span class="built_in">length_in_sequence_space</span>(); <span class="comment">//更新飞行字节数</span></span><br><span class="line">            _outstanding_segments.<span class="built_in">erase</span>(iter); <span class="comment">//移除该段</span></span><br><span class="line">            <span class="built_in">tick</span>(<span class="number">0</span>); <span class="comment">//重置计时器</span></span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">break</span>; <span class="comment">//大于说明以后的段都不需要删</span></span><br><span class="line">        &#125;</span><br><span class="line">        iter = next_iter;<span class="comment">//更新迭代器</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+</ul>
+</li>
+<li>lab提供的公共接口实现<ul>
+<li>bytes_in_flight()<blockquote>
+<p>采用了空间换时间的策略，之间返回<code>_bytes_in_flight</code>就可以</p>
+</blockquote>
+</li>
+<li>fill_window()<blockquote>
+<p>该方法需要对三种状态进行处理:</p>
+<ul>
+<li>CLOSED 状态发送 SYN</li>
+<li>创建数据段发送数据段直至填充满发送窗口</li>
+<li>需要关闭时，发送 FIN</li>
+</ul>
+</blockquote>
+</li>
+<li>ack_received()<blockquote>
+<p>该方法处理的状态也比较多：</p>
+<ul>
+<li>SENTSYN 状态，等待SYN的ACK</li>
+<li>重置时间，调用前面增加的方法即可</li>
+<li>更新追踪段，同上</li>
+<li>窗口满发送单字节</li>
+<li>窗口空填充窗口</li>
+<li>可以发送FIN时，发送FIN</li>
+</ul>
+</blockquote>
+</li>
+<li>tick()<blockquote>
+<p>该方法负责计时和超时处理：</p>
+<ul>
+<li>输入为0,重置计时器</li>
+<li>不为零，累加时间</li>
+<li>超时做v&#x3D;超时处理</li>
+</ul>
+</blockquote>
+</li>
+<li>consecutive_retransmissions()<blockquote>
+<p>返回重传输次数即可</p>
+</blockquote>
+</li>
+<li>send_empty_segment()<blockquote>
+<p>创建空段，发送ack信号</p>
+</blockquote>
+</li>
+</ul>
+</li>
+<li>实现代码：<ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/tcp_sender.hh">tcp_sender.hh</a></li>
+<li><a target="_blank" rel="noopener" href="https://github.com/Purepipha/sponge/blob/lab0-startercode/libsponge/tcp_sender.cc">tcp_sender.cc</a></li>
+</ul>
+</li>
+<li>测试结果：<br><img src="https://pic.imgdb.cn/item/6292c2b3094754312994e299.jpg" alt="测试结果1"><br><img src="https://pic.imgdb.cn/item/6292c2470947543129947c87.jpg" alt="测试结果2"></li>
+</ul>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>版权声明： </strong>
+          
+          本博客所有文章除特别声明外，著作权归作者所有。转载请注明出处！
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://purepipha.github.io/2022/05/15/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab3/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CS144Lab/" rel="tag">CS144Lab</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/" rel="tag">计算机网络</a></li></ul>
+
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+    
+      <a href="/2022/05/10/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab2/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">CS144计算机网络Lab2</div>
+      </a>
+    
+  </nav>
+
+  
+   
+<div class="gitalk" id="gitalk-container"></div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.css">
+
+
+<script src="https://cdn.staticfile.org/gitalk/1.7.2/gitalk.min.js"></script>
+
+
+<script src="https://cdn.staticfile.org/blueimp-md5/2.19.0/js/md5.min.js"></script>
+
+<script type="text/javascript">
+  var gitalk = new Gitalk({
+    clientID: '23c04b7acf6e60122202',
+    clientSecret: '939a92b2597f5da8d55e5003ce499329851ab1fe',
+    repo: 'Review_storage',
+    owner: 'Purepipha',
+    admin: ['Purepipha'],
+    // id: location.pathname,      // Ensure uniqueness and length less than 50
+    id: md5(location.pathname),
+    distractionFreeMode: false,  // Facebook-like distraction free mode
+    pagerDirection: 'last'
+  })
+
+  gitalk.render('gitalk-container')
+</script>
+
+    
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2022
+        <i class="ri-heart-fill heart_icon"></i> Purepipha
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+        
+        <span>
+  <span><i class="ri-user-3-fill"></i>访问人数:<span id="busuanzi_value_site_uv"></span></span>
+  <span class="division">|</span>
+  <span><i class="ri-eye-fill"></i>浏览次数:<span id="busuanzi_value_page_pv"></span></span>
+</span>
+        
+      </li>
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer-side.svg" alt="Pursue Epipha&#39;s blog"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/friends">友链</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="搜索">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.jpg">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.jpg">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+ <script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/MathJax.js"></script>
+<script src="https://cdn.staticfile.org/mathjax/2.7.7/config/TeX-AMS-MML_HTMLorMML-full.js"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true,
+  };
+</script>
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+ 
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+ 
+<!-- ClickLove -->
+ 
+<script src="/js/clickLove.js"></script>
+ 
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+ 
+<script src="/js/dz.js"></script>
+ 
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>
