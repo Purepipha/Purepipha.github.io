@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://purepipha.github.io/2022/05/18/Shell-Learning/</loc>
+    
+    <lastmod>2022-06-05</lastmod>
+    
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  
+  <url>
     <loc>https://purepipha.github.io/2022/05/15/CS144%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9CLab3/</loc>
     
     <lastmod>2022-05-29</lastmod>
@@ -85,7 +94,7 @@
 
   <url>
     <loc>https://purepipha.github.io/</loc>
-    <lastmod>2022-05-29</lastmod>
+    <lastmod>2022-06-05</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -93,14 +102,21 @@
   
   <url>
     <loc>https://purepipha.github.io/tags/CS144Lab/</loc>
-    <lastmod>2022-05-29</lastmod>
+    <lastmod>2022-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://purepipha.github.io/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2022-05-29</lastmod>
+    <lastmod>2022-06-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://purepipha.github.io/tags/Shell/</loc>
+    <lastmod>2022-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
@@ -109,14 +125,21 @@
   
   <url>
     <loc>https://purepipha.github.io/categories/Way-of-Seeking/</loc>
-    <lastmod>2022-05-29</lastmod>
+    <lastmod>2022-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
   
   <url>
     <loc>https://purepipha.github.io/categories/Way-of-Seeking/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/</loc>
-    <lastmod>2022-05-29</lastmod>
+    <lastmod>2022-06-05</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  
+  <url>
+    <loc>https://purepipha.github.io/categories/Way-of-Seeking/Shell-Learn/</loc>
+    <lastmod>2022-06-05</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.2</priority>
   </url>
